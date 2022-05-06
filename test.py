@@ -76,7 +76,10 @@ def DataInit(filename):
     trainingData = DataPreprocessed.iloc[:, :].values
     sample = trainingData[:, 1:]
     sample_label = trainingData[:, 0]
-    return sample, sample_label
+    if filename == 'train.txt':
+        return sample, sample_label
+    else:
+        return sample
 
 
 def main():
