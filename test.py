@@ -49,13 +49,12 @@ def DataInit(filename):
     for line in f:
         # loading and labeling coarse data
         domain = f.readline()
-        domain.strip()
+        domain.replace('\n', '')
         data.append(domain.split(','))
     if filename == 'train.txt':
         DataForm = pd.DataFrame(columns=['label', 'domain'])
         i = 0
         for d in data:
-            print(d[1])
             if 'notdga' in d[1]:
                 DataForm.loc[i] = [0, d[0]]
             else:
@@ -101,7 +100,9 @@ def DataInit(filename):
         # matrix generating
         trainingData = DataPreprocessed.iloc[:, :].values
         sample = trainingData[:, 1:]
-        return sample
+        domain_list = trainingData[:, 0]
+
+        return sample, domain_list
 
 
 def main():
@@ -109,15 +110,14 @@ def main():
     sample = []
     for t in total_sample:
         sample.append(t[1:])
-
     model = SVC(kernel='rbf', C=0.4).fit(sample, sample_label.astype('int'))
 
-    test = DataInit('test.txt')
-    domain_list = []
+    test, domain_list = DataInit('test.txt')
+    for i in range(len(domain_list)):
+        domain_list[i] = domain_list[i].replace('\n', '')
     test_data = []
     for t in test:
-        test_data.append(t[1:])
-        domain_list.append(t[0])
+        test_data.append(t)
     result = model.predict(test_data)
     with open('result.txt','w') as f:
         for i in range(len(result)):
