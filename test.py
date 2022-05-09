@@ -51,34 +51,56 @@ def DataInit(filename):
         domain = f.readline()
         domain.strip()
         data.append(domain.split(','))
-    DataForm = pd.DataFrame(columns=['label', 'domain'])
-    i = 0
-    for d in data:
-        if 'notdga' in d[1]:
-            DataForm.loc[i] = [0, d[0]]
-        else:
-            DataForm.loc[i] = [1, d[0]]
-        i += 1
-    # obtaining feature
-    DataForm['length'] = DataForm['domain'].map(lambda x: get_length(x)).astype(int)
-    DataForm['entropy'] = DataForm['domain'].map(lambda x: get_entropy(x)).astype(float)
-    DataForm['ratio'] = DataForm['domain'].map(lambda x: get_ratio(x)).astype(float)
-    # feature scaling
-    scaler = preprocessing.StandardScaler()
-    len_scale_param = scaler.fit(DataForm['length'].values.reshape(-1, 1))
-    DataForm['len_scaled'] = scaler.fit_transform(DataForm['length'].values.reshape(-1, 1), len_scale_param)
-    shan_scale_param = scaler.fit(DataForm['entropy'].values.reshape(-1, 1))
-    DataForm['entropy_scaled'] = scaler.fit_transform(DataForm['entropy'].values.reshape(-1, 1), shan_scale_param)
-    # data filtering
-    DataPreprocessed = DataForm.filter(regex='label|ratio|len_scaled|entropy_scaled|domain')
-    DataPreprocessed = shuffle(DataPreprocessed)
-    # matrix generating
-    trainingData = DataPreprocessed.iloc[:, :].values
-    sample = trainingData[:, 1:]
-    sample_label = trainingData[:, 0]
     if filename == 'train.txt':
+        DataForm = pd.DataFrame(columns=['label', 'domain'])
+        i = 0
+        for d in data:
+            print(d[1])
+            if 'notdga' in d[1]:
+                DataForm.loc[i] = [0, d[0]]
+            else:
+                DataForm.loc[i] = [1, d[0]]
+            i += 1
+        # obtaining feature
+        DataForm['length'] = DataForm['domain'].map(lambda x: get_length(x)).astype(int)
+        DataForm['entropy'] = DataForm['domain'].map(lambda x: get_entropy(x)).astype(float)
+        DataForm['ratio'] = DataForm['domain'].map(lambda x: get_ratio(x)).astype(float)
+        # feature scaling
+        scaler = preprocessing.StandardScaler()
+        len_scale_param = scaler.fit(DataForm['length'].values.reshape(-1, 1))
+        DataForm['len_scaled'] = scaler.fit_transform(DataForm['length'].values.reshape(-1, 1), len_scale_param)
+        shan_scale_param = scaler.fit(DataForm['entropy'].values.reshape(-1, 1))
+        DataForm['entropy_scaled'] = scaler.fit_transform(DataForm['entropy'].values.reshape(-1, 1), shan_scale_param)
+        # data filtering
+        DataPreprocessed = DataForm.filter(regex='label|ratio|len_scaled|entropy_scaled|domain')
+        DataPreprocessed = shuffle(DataPreprocessed)
+        # matrix generating
+        trainingData = DataPreprocessed.iloc[:, :].values
+        sample = trainingData[:, 1:]
+        sample_label = trainingData[:, 0]
         return sample, sample_label
     else:
+        DataForm = pd.DataFrame(columns=['domain'])
+        i = 0
+        for d in data:
+            DataForm.loc[i] = d[0]
+            i += 1
+        # obtaining feature
+        DataForm['length'] = DataForm['domain'].map(lambda x: get_length(x)).astype(int)
+        DataForm['entropy'] = DataForm['domain'].map(lambda x: get_entropy(x)).astype(float)
+        DataForm['ratio'] = DataForm['domain'].map(lambda x: get_ratio(x)).astype(float)
+        # feature scaling
+        scaler = preprocessing.StandardScaler()
+        len_scale_param = scaler.fit(DataForm['length'].values.reshape(-1, 1))
+        DataForm['len_scaled'] = scaler.fit_transform(DataForm['length'].values.reshape(-1, 1), len_scale_param)
+        shan_scale_param = scaler.fit(DataForm['entropy'].values.reshape(-1, 1))
+        DataForm['entropy_scaled'] = scaler.fit_transform(DataForm['entropy'].values.reshape(-1, 1), shan_scale_param)
+        # data filtering
+        DataPreprocessed = DataForm.filter(regex='label|ratio|len_scaled|entropy_scaled|domain')
+        DataPreprocessed = shuffle(DataPreprocessed)
+        # matrix generating
+        trainingData = DataPreprocessed.iloc[:, :].values
+        sample = trainingData[:, 1:]
         return sample
 
 
@@ -90,7 +112,7 @@ def main():
 
     model = SVC(kernel='rbf', C=0.4).fit(sample, sample_label.astype('int'))
 
-    test, test_label = DataInit('test.txt')
+    test = DataInit('test.txt')
     domain_list = []
     test_data = []
     for t in test:
@@ -113,6 +135,9 @@ def main():
         # score = model_selection.cross_val_score(model, test_data, test_label.astype('int'),cv=3)
         # s = '交叉检验评分为：' + str(score)
         # f.write(s)
+        # stat = list(result == test_label)
+        # conclusion = '识别准确率为' + str(stat.count(True) / len(stat))
+        # print(conclusion)
 
 
 
